@@ -22,13 +22,13 @@ jobs:
           dotnet-version: '8.x' # Última versión estable
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore InventoryManagement.Api/InventoryManagement.sln
 
       - name: Build project
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build InventoryManagement.Api/InventoryManagement.sln --configuration Release --no-restore
 
       - name: Publish project
-        run: dotnet publish -c Release -o myapp
+        run: dotnet publish InventoryManagement.Api/InventoryManagement.sln -c Release -o myapp
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
