@@ -27,6 +27,10 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IInventoryOutRepository, InventoryOutRepository>();
 builder.Services.AddScoped<IInventoryOutService, InventoryOutService>();
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
+builder.Services.AddScoped<IBranchService, BranchService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
 var key = Encoding.UTF8.GetBytes(configuration[ "Jwt:Key" ]);

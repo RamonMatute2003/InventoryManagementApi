@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using InventoryManagement.Shared.Enums;
 using InventoryManagement.Shared.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InventoryManagement.Api.Helpers;
 
