@@ -49,6 +49,11 @@ public class InventoryOutRepository : IInventoryOutRepository
 
     public async Task<InventoryOutDto> CreateAsync(CreateInventoryOutDto inventoryOutDto, int userId)
     {
+        if(inventoryOutDto.IdBranch != 1)
+        {
+            throw new InvalidOperationException("⛔ Solo la Bodega Central puede realizar envíos de productos.");
+        }
+
         decimal totalPending = await _context.InventoryOutHeaders
             .Where(io => io.IdBranch == inventoryOutDto.IdBranch && io.IdStatus == 1)
             .SumAsync(io => io.TotalCost);
@@ -93,10 +98,12 @@ public class InventoryOutRepository : IInventoryOutRepository
                     IdProduct = detail.IdProduct,
                     IdBatch = lot.IdBatch,
                     Quantity = quantityToTake,
-                    Cost = lot.Cost
+                    Cost = lot.Cost * quantityToTake
                 };
 
                 _context.InventoryOutDetails.Add(newDetail);
+
+                totalCost += lot.Cost * quantityToTake;
                 remainingQuantity -= quantityToTake;
 
                 lot.BatchQuantity -= quantityToTake;
