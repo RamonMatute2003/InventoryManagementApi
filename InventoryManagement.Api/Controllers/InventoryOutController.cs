@@ -39,28 +39,34 @@ public class InventoryOutController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateInventoryOut([FromBody] CreateInventoryOutDto inventoryOutDto)
     {
-        var userClaims = User.Claims.ToList();
-
-        var userIdClaim = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-        var roleClaim = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
-
-        if(userIdClaim == null || roleClaim == null)
+        try
         {
-            return ApiResponseHelper.Unauthorized("No se pudo obtener el ID del usuario o su rol.");
-        }
+            var userClaims = User.FindAll("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").ToList();
 
-        if(!int.TryParse(userIdClaim.Value, out int userId))
-        {
-            return ApiResponseHelper.Unauthorized($"El Claim NameIdentifier tiene un valor inválido: {userIdClaim.Value}");
-        }
+            var userIdClaim = userClaims.FirstOrDefault(c => int.TryParse(c.Value, out _));
 
-        if(roleClaim.Value != "Jefe de Bodega")
-        {
-            return ApiResponseHelper.Forbidden("⛔ Solo los usuarios con el rol 'Jefe de Bodega' pueden registrar salidas de inventario.");
-        }
+            var roleClaim = userClaims.FirstOrDefault(c => !int.TryParse(c.Value, out _));
 
-        var result = await _inventoryOutService.CreateInventoryOutAsync(inventoryOutDto, userId);
-        return ApiResponseHelper.Created(result, "✅ Salida de inventario creada exitosamente.");
+            if(userIdClaim == null || roleClaim == null)
+            {
+                return ApiResponseHelper.Unauthorized("No se pudo obtener el ID del usuario o su rol.");
+            }
+
+            if(!int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return ApiResponseHelper.Unauthorized($"El Claim NameIdentifier tiene un valor inválido: {userIdClaim.Value}");
+            }
+
+            if(roleClaim.Value != "Jefe de Bodega")
+            {
+                return ApiResponseHelper.Forbidden("⛔ Solo los usuarios con el rol 'Jefe de Bodega' pueden registrar salidas de inventario.");
+            }
+
+            var result = await _inventoryOutService.CreateInventoryOutAsync(inventoryOutDto, userId);
+            return ApiResponseHelper.Created(result, "✅ Salida de inventario creada exitosamente.");
+        } catch(Exception ex){
+            return ApiResponseHelper.InternalServerError(ex.Message, ex.ToString());
+        }
     }
 
     [HttpGet]
