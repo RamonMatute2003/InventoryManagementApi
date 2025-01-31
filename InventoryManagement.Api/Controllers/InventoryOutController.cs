@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-using InventoryManagement.Api.Helpers;
+﻿using InventoryManagement.Api.Helpers;
 using InventoryManagement.Domain.Interfaces;
 using InventoryManagement.Shared.Models;
 using Microsoft.AspNetCore.Authorization;

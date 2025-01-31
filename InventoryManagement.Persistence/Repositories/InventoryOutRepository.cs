@@ -49,11 +49,6 @@ public class InventoryOutRepository : IInventoryOutRepository
 
     public async Task<InventoryOutDto> CreateAsync(CreateInventoryOutDto inventoryOutDto, int userId)
     {
-        if(inventoryOutDto.IdBranch != 1)
-        {
-            throw new InvalidOperationException("⛔ Solo la Bodega Central puede realizar envíos de productos.");
-        }
-
         decimal totalPending = await _context.InventoryOutHeaders
             .Where(io => io.IdBranch == inventoryOutDto.IdBranch && io.IdStatus == 1)
             .SumAsync(io => io.TotalCost);
