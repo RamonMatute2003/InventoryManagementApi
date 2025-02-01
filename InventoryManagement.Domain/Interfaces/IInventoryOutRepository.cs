@@ -9,4 +9,5 @@ public interface IInventoryOutRepository
     Task<InventoryOutDto> CreateAsync(CreateInventoryOutDto inventoryOut, int userId);
     Task<IEnumerable<FilteredInventoryOutDto>> GetFilteredInventoryOutsAsync(DateTime? startDate, DateTime? endDate, int? branchId, string? status);
     Task<bool> ReceiveInventoryOutAsync(int id, int receivedByUserId);
+    Task<ProductDetailsDto?> GetProductDetailsAsync(int productId);
 }

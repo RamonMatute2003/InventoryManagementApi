@@ -181,4 +181,28 @@ public class InventoryOutRepository : IInventoryOutRepository
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<ProductDetailsDto?> GetProductDetailsAsync(int productId)
+    {
+        var product = await _context.Products
+            .Where(p => p.IdProduct == productId)
+            .Select(p => new ProductDetailsDto
+            {
+                IdProduct = p.IdProduct,
+                ProductName = p.Name,
+                Lots = p.InventoryLots
+                    .Where(l => l.BatchQuantity > 0)
+                    .OrderBy(l => l.ExpirationDate)
+                    .Select(l => new ProductLotDto
+                    {
+                        BatchId = l.IdBatch,
+                        BatchQuantity = l.BatchQuantity,
+                        Cost = l.Cost,
+                        ExpirationDate = l.ExpirationDate
+                    }).ToList()
+            })
+            .FirstOrDefaultAsync();
+
+        return product;
+    }
 }

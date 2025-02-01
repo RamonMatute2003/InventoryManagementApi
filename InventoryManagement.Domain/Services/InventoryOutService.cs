@@ -36,4 +36,9 @@ public class InventoryOutService : IInventoryOutService
     {
         return await _inventoryOutRepository.ReceiveInventoryOutAsync(id, receivedByUserId);
     }
+
+    public async Task<ProductDetailsDto?> GetProductDetailsAsync(int productId)
+    {
+        return await _inventoryOutRepository.GetProductDetailsAsync(productId);
+    }
 }

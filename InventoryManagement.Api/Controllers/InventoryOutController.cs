@@ -101,4 +101,14 @@ public class InventoryOutController : ControllerBase
             ? ApiResponseHelper.Ok("✅ Salida de inventario marcada como recibida.")
             : ApiResponseHelper.NotFound("❌ No se encontró la salida de inventario o ya estaba recibida.");
     }
+
+    [HttpGet("product-details/{productId}")]
+    public async Task<IActionResult> GetProductDetails(int productId)
+    {
+        var result = await _inventoryOutService.GetProductDetailsAsync(productId);
+
+        return result != null
+            ? ApiResponseHelper.Ok(result, "✅ Datos del producto obtenidos correctamente.")
+            : ApiResponseHelper.NotFound("❌ Producto no encontrado.");
+    }
 }
