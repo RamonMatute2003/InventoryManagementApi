@@ -9,28 +9,21 @@ namespace InventoryManagement.Api.Controllers;
 [ApiController]
 [Route("api/inventory-outs")]
 [Authorize]
-public class InventoryOutController : ControllerBase
+public class InventoryOutController(IInventoryOutService inventoryOutService) : ControllerBase
 {
-    private readonly IInventoryOutService _inventoryOutService;
-
-    public InventoryOutController(IInventoryOutService inventoryOutService)
-    {
-        _inventoryOutService = inventoryOutService;
-    }
-
     [HttpGet("list")]
     public async Task<IActionResult> GetAllInventoryOuts()
     {
-        var result = await _inventoryOutService.GetAllAsync();
-        return ApiResponseHelper.Ok(result, "✅ Listado de salidas de inventario obtenido correctamente.");
+        var result = await inventoryOutService.GetAllAsync();
+        return ApiResponseHelper.Ok(result, "Listado de salidas de inventario obtenido correctamente.");
     }
 
     [HttpGet("detail/{id:int}")]
     public async Task<IActionResult> GetInventoryOutById(int id)
     {
-        var result = await _inventoryOutService.GetByIdAsync(id);
+        var result = await inventoryOutService.GetByIdAsync(id);
         return result == null
-            ? ApiResponseHelper.NotFound("❌ Salida de inventario no encontrada.")
+            ? ApiResponseHelper.NotFound("Salida de inventario no encontrada.")
             : ApiResponseHelper.Ok(result);
     }
 
@@ -57,11 +50,11 @@ public class InventoryOutController : ControllerBase
 
             if(roleClaim.Value != "Jefe de Bodega")
             {
-                return ApiResponseHelper.Forbidden("⛔ Solo los usuarios con el rol 'Jefe de Bodega' pueden registrar salidas de inventario.");
+                return ApiResponseHelper.Forbidden("Solo los usuarios con el rol 'Jefe de Bodega' pueden registrar salidas de inventario.");
             }
 
-            var result = await _inventoryOutService.CreateInventoryOutAsync(inventoryOutDto, userId);
-            return ApiResponseHelper.Created(result, "✅ Salida de inventario creada exitosamente.");
+            var result = await inventoryOutService.CreateInventoryOutAsync(inventoryOutDto, userId);
+            return ApiResponseHelper.Created(result, "Salida de inventario creada exitosamente.");
         } catch(Exception ex){
             return ApiResponseHelper.InternalServerError(ex.Message, ex.ToString());
         }
@@ -74,8 +67,8 @@ public class InventoryOutController : ControllerBase
     [FromQuery] int? branchId,
     [FromQuery] string? status)
     {
-        var inventoryOuts = await _inventoryOutService.GetFilteredInventoryOutsAsync(startDate, endDate, branchId, status);
-        return ApiResponseHelper.Ok(inventoryOuts, "✅ Listado de salidas de inventario obtenido correctamente.");
+        var inventoryOuts = await inventoryOutService.GetFilteredInventoryOutsAsync(startDate, endDate, branchId, status);
+        return ApiResponseHelper.Ok(inventoryOuts, "Listado de salidas de inventario obtenido correctamente.");
     }
 
     [HttpPut("{id}/receive")]
@@ -95,20 +88,20 @@ public class InventoryOutController : ControllerBase
             return ApiResponseHelper.Unauthorized($"El Claim NameIdentifier tiene un valor inválido: {userIdClaim.Value}");
         }
 
-        var result = await _inventoryOutService.ReceiveInventoryOutAsync(id, userId);
+        var result = await inventoryOutService.ReceiveInventoryOutAsync(id, userId);
 
         return result
-            ? ApiResponseHelper.Ok("✅ Salida de inventario marcada como recibida.")
-            : ApiResponseHelper.NotFound("❌ No se encontró la salida de inventario o ya estaba recibida.");
+            ? ApiResponseHelper.Ok("Salida de inventario marcada como recibida.")
+            : ApiResponseHelper.NotFound("No se encontró la salida de inventario o ya estaba recibida.");
     }
 
     [HttpGet("product-details/{productId}")]
     public async Task<IActionResult> GetProductDetails(int productId)
     {
-        var result = await _inventoryOutService.GetProductDetailsAsync(productId);
+        var result = await inventoryOutService.GetProductDetailsAsync(productId);
 
         return result != null
-            ? ApiResponseHelper.Ok(result, "✅ Datos del producto obtenidos correctamente.")
-            : ApiResponseHelper.NotFound("❌ Producto no encontrado.");
+            ? ApiResponseHelper.Ok(result, "Datos del producto obtenidos correctamente.")
+            : ApiResponseHelper.NotFound("Producto no encontrado.");
     }
 }

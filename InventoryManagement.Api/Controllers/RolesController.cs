@@ -2,7 +2,6 @@
 using InventoryManagement.Api.Helpers;
 using InventoryManagement.Domain.Interfaces;
 using InventoryManagement.Shared.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,14 +10,9 @@ namespace InventoryManagement.Api.Controllers;
 [ApiController]
 [Route("api/roles")]
 [Authorize]
-public class RolesController : ControllerBase
+public class RolesController(IRoleService roleService) : ControllerBase
 {
-    private readonly IRoleService _roleService;
-
-    public RolesController(IRoleService roleService)
-    {
-        _roleService = roleService;
-    }
+    private readonly IRoleService _roleService = roleService;
 
     [HttpPost]
     public async Task<IActionResult> CreateRole([FromBody] CreateRoleDto createRoleDto)

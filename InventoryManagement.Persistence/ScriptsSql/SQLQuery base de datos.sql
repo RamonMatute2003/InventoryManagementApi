@@ -101,12 +101,6 @@ INSERT INTO Products (ProductCode, Name, Cost, IdBranch) VALUES
 
 INSERT INTO InventoryOutStatus (StatusName) VALUES ('Enviada a Sucursal'), ('Recibida en Sucursal');
 
-IdBatch INT PRIMARY KEY IDENTITY(1,1),
-    BatchQuantity INT NOT NULL,
-    ExpirationDate DATE NOT NULL,
-    Cost DECIMAL(18, 2) NOT NULL,
-    IdProduct INT NOT NULL,
-
 INSERT INTO InventoryLots (BatchQuantity, ExpirationDate, Cost, IdProduct) VALUES
 (5, '2024-06-30', 1500.00, 1),
 (10, '2024-12-15', 1500.00, 1),

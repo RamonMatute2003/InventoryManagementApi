@@ -2,21 +2,15 @@
 using InventoryManagement.Persistence.Contexts;
 using InventoryManagement.Persistence.Models;
 using InventoryManagement.Shared.Models;
-
 using Microsoft.EntityFrameworkCore;
 
-public class UserRepository : IUserRepository
+namespace InventoryManagement.Persistence.Repositories;
+
+public class UserRepository(InventoryDbContext context) : IUserRepository
 {
-    private readonly InventoryDbContext _context;
-
-    public UserRepository(InventoryDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<UserWithPasswordDto?> GetUserByUsernameAsync(string username)
     {
-        var user = await _context.Users
+        var user = await context.Users
             .Include(u => u.IdRoleNavigation)
             .Where(u => u.UserName == username)
             .Select(u => new UserWithPasswordDto
@@ -33,7 +27,7 @@ public class UserRepository : IUserRepository
 
     public async Task<bool> UserExistsAsync(string username)
     {
-        return await _context.Users.AnyAsync(u => u.UserName == username);
+        return await context.Users.AnyAsync(u => u.UserName == username);
     }
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto userDto)
@@ -45,10 +39,10 @@ public class UserRepository : IUserRepository
             IdRole = userDto.IdRole
         };
 
-        _context.Users.Add(newUser);
-        await _context.SaveChangesAsync();
+        context.Users.Add(newUser);
+        await context.SaveChangesAsync();
 
-        var role = await _context.Roles
+        var role = await context.Roles
             .Where(r => r.IdRole == newUser.IdRole)
             .Select(r => r.RoleName)
             .FirstOrDefaultAsync();

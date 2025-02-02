@@ -5,18 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagement.Persistence.Repositories;
 
-public class ProductRepository : IProductRepository
+public class ProductRepository(InventoryDbContext context) : IProductRepository
 {
-    private readonly InventoryDbContext _context;
-
-    public ProductRepository(InventoryDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<List<ProductDto>> GetAllProductsAsync()
     {
-        return await _context.Products
+        return await context.Products
             .Select(p => new ProductDto
             {
                 Id = p.IdProduct,

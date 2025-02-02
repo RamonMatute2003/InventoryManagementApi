@@ -5,18 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagement.Persistence.Repositories;
 
-public class InventoryRepository : IInventoryRepository
+public class InventoryRepository(InventoryDbContext context) : IInventoryRepository
 {
-    private readonly InventoryDbContext _context;
-
-    public InventoryRepository(InventoryDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<int> GetAvailableStockAsync(int productId)
     {
-        return await _context.InventoryLots
+        return await context.InventoryLots
             .Where(l => l.IdProduct == productId)
             .SumAsync(l => l.BatchQuantity);
     }

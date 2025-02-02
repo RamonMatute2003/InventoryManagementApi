@@ -7,19 +7,12 @@ namespace InventoryManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
-        var token = await _authService.AuthenticateAsync(request.Username, request.Password);
+        var token = await authService.AuthenticateAsync(request.Username, request.Password);
 
         if(token == null)
         {

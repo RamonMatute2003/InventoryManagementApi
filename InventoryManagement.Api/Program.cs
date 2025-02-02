@@ -8,7 +8,6 @@ using InventoryManagement.Shared.Enums;
 using InventoryManagement.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -33,7 +32,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
-var key = Encoding.UTF8.GetBytes(configuration[ "Jwt:Key" ]);
+var key = Encoding.UTF8.GetBytes(configuration[ "Jwt:Key" ]!);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -104,7 +103,7 @@ builder.Services.AddSwaggerGen(options =>
             {
                 Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
@@ -122,7 +121,7 @@ app.Use(async (context, next) =>
             context.Response.ContentType = "application/json";
             var problemDetails = await context.Request.ReadFromJsonAsync<ValidationProblemDetails>();
 
-            var response = ApiResponseHelper.BadRequest("❌ Error de validación", problemDetails?.Errors);
+            var response = ApiResponseHelper.BadRequest("Error de validación", problemDetails?.Errors!);
             await context.Response.WriteAsJsonAsync(response);
         }
     } catch(Exception ex)
@@ -132,7 +131,7 @@ app.Use(async (context, next) =>
             context.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
 
-            var response = ApiResponseHelper.InternalServerError("🔥 Error interno del servidor", ex.Message);
+            var response = ApiResponseHelper.InternalServerError("Error interno del servidor", ex.Message);
             await context.Response.WriteAsJsonAsync(response);
         }
     }

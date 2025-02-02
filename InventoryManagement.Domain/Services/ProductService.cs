@@ -2,17 +2,10 @@
 using InventoryManagement.Shared.Models;
 
 namespace InventoryManagement.Domain.Services;
-public class ProductService : IProductService
+public class ProductService(IProductRepository productRepository) : IProductService
 {
-    private readonly IProductRepository _productRepository;
-
-    public ProductService(IProductRepository productRepository)
-    {
-        _productRepository = productRepository;
-    }
-
     public async Task<List<ProductDto>> GetAllProductsAsync()
     {
-        return await _productRepository.GetAllProductsAsync();
+        return await productRepository.GetAllProductsAsync();
     }
 }

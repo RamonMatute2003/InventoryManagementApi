@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using InventoryManagement.Api.Helpers;
 
 namespace InventoryManagement.Api.Filters;
@@ -11,18 +10,17 @@ public class ValidationFilter : IActionFilter
         if(!context.ModelState.IsValid)
         {
             var errors = context.ModelState
-                .Where(e => e.Value.Errors.Count > 0)
+                .Where(e => e.Value?.Errors.Count > 0)
                 .ToDictionary(
                     kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToArray()
                 );
 
-            context.Result = ApiResponseHelper.BadRequest("❌ Error de validación", errors);
+            context.Result = ApiResponseHelper.BadRequest("Error de validación", errors);
         }
     }
 
-    public void OnActionExecuted(ActionExecutedContext context)
+    public void OnActionExecuted(ActionExecutedContext context)//no borrar, se ocupa internamente
     {
-        // No se necesita lógica aquí
     }
 }

@@ -2,23 +2,15 @@
 using InventoryManagement.Persistence.Contexts;
 using InventoryManagement.Persistence.Models;
 using InventoryManagement.Shared.Models;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryManagement.Persistence.Repositories;
 
-public class InventoryOutRepository : IInventoryOutRepository
+public class InventoryOutRepository(InventoryDbContext context) : IInventoryOutRepository
 {
-    private readonly InventoryDbContext _context;
-
-    public InventoryOutRepository(InventoryDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<IEnumerable<InventoryOutDto>> GetAllAsync()
     {
-        return await _context.InventoryOutHeaders
+        return await context.InventoryOutHeaders
             .Select(ioh => new InventoryOutDto
             {
                 IdOutHeader = ioh.IdOutHeader,
@@ -32,7 +24,7 @@ public class InventoryOutRepository : IInventoryOutRepository
 
     public async Task<InventoryOutDto?> GetByIdAsync(int id)
     {
-        var inventoryOut = await _context.InventoryOutHeaders
+        var inventoryOut = await context.InventoryOutHeaders
             .Where(ioh => ioh.IdOutHeader == id)
             .Select(ioh => new InventoryOutDto
             {
@@ -46,20 +38,21 @@ public class InventoryOutRepository : IInventoryOutRepository
 
         return inventoryOut;
     }
+
     public async Task<InventoryOutDto> CreateAsync(CreateInventoryOutDto inventoryOutDto, int userId)
     {
         if(inventoryOutDto.IdBranch == 1)
         {
-            throw new InvalidOperationException("⛔ la Bodega Central solo puede realizar envíos de productos");
+            throw new InvalidOperationException("la Bodega Central solo puede realizar envíos de productos");
         }
 
-        decimal totalPending = await _context.InventoryOutHeaders
+        decimal totalPending = await context.InventoryOutHeaders
             .Where(io => io.IdBranch == inventoryOutDto.IdBranch && io.IdStatus == 1)
             .SumAsync(io => io.TotalCost);
 
         if(totalPending + inventoryOutDto.TotalCost > 5000)
         {
-            throw new InvalidOperationException("❌ La sucursal ya tiene más de L 5000 en envíos pendientes.");
+            throw new InvalidOperationException("La sucursal ya tiene más de L 5000 en envíos pendientes.");
         }
 
         var newInventoryOut = new InventoryOutHeader
@@ -70,14 +63,14 @@ public class InventoryOutRepository : IInventoryOutRepository
             IdStatus = 1
         };
 
-        _context.InventoryOutHeaders.Add(newInventoryOut);
-        await _context.SaveChangesAsync();
+        context.InventoryOutHeaders.Add(newInventoryOut);
+        await context.SaveChangesAsync();
 
         decimal totalCost = 0;
 
         foreach(var detail in inventoryOutDto.Details)
         {
-            var availableLots = await _context.InventoryLots
+            var availableLots = await context.InventoryLots
                 .Where(l => l.IdProduct == detail.IdProduct && l.BatchQuantity > 0)
                 .OrderBy(l => l.ExpirationDate)
                 .ToListAsync();
@@ -100,28 +93,27 @@ public class InventoryOutRepository : IInventoryOutRepository
                     Cost = lot.Cost * quantityToTake
                 };
 
-                _context.InventoryOutDetails.Add(newDetail);
+                context.InventoryOutDetails.Add(newDetail);
 
                 totalCost += lot.Cost * quantityToTake;
                 remainingQuantity -= quantityToTake;
 
                 lot.BatchQuantity -= quantityToTake;
 
-                // ❌ NO eliminar el lote, solo actualizar su cantidad a 0
                 if(lot.BatchQuantity == 0)
                 {
-                    _context.InventoryLots.Update(lot);
+                    context.InventoryLots.Update(lot);
                 }
             }
 
             if(remainingQuantity > 0)
             {
-                throw new InvalidOperationException($"❌ No hay suficiente stock para el producto {detail.IdProduct}. Faltan {remainingQuantity} unidades.");
+                throw new InvalidOperationException($"No hay suficiente stock para el producto {detail.IdProduct}. Faltan {remainingQuantity} unidades.");
             }
         }
 
         newInventoryOut.TotalCost = totalCost;
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return new InventoryOutDto
         {
@@ -137,7 +129,7 @@ public class InventoryOutRepository : IInventoryOutRepository
 
     public async Task<IEnumerable<FilteredInventoryOutDto>> GetFilteredInventoryOutsAsync(DateTime? startDate, DateTime? endDate, int? branchId, string? status)
     {
-        var query = _context.InventoryOutHeaders
+        var query = context.InventoryOutHeaders
             .Include(io => io.IdUserNavigation)
             .Include(io => io.IdBranchNavigation)
             .Include(io => io.IdStatusNavigation)
@@ -170,7 +162,7 @@ public class InventoryOutRepository : IInventoryOutRepository
 
     public async Task<bool> ReceiveInventoryOutAsync(int id, int receivedByUserId)
     {
-        var inventoryOut = await _context.InventoryOutHeaders
+        var inventoryOut = await context.InventoryOutHeaders
             .FirstOrDefaultAsync(io => io.IdOutHeader == id);
 
         if(inventoryOut == null || inventoryOut.IdStatus == 2)
@@ -182,13 +174,13 @@ public class InventoryOutRepository : IInventoryOutRepository
         inventoryOut.ReceivedBy = receivedByUserId;
         inventoryOut.ReceivedDate = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return true;
     }
 
     public async Task<ProductDetailsDto?> GetProductDetailsAsync(int productId)
     {
-        var product = await _context.Products
+        var product = await context.Products
             .Where(p => p.IdProduct == productId)
             .Select(p => new ProductDetailsDto
             {

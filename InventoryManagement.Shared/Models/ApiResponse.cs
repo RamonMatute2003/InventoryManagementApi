@@ -8,12 +8,4 @@ public class ApiResponse<T>
     public object? Error { get; set; }
 
     public ApiResponse() { }
-
-    public ApiResponse(int code, string message, T? body = default, object? error = null)
-    {
-        Code = code;
-        Message = message;
-        Body = body;
-        Error = error;
-    }
 }

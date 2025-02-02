@@ -8,20 +8,13 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace InventoryManagement.Domain.Services;
 
-public class AuthService : IAuthService
+public class AuthService(IUserRepository userRepository, IOptions<JwtSettings> jwtSettings) : IAuthService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly JwtSettings _jwtSettings;
-
-    public AuthService(IUserRepository userRepository, IOptions<JwtSettings> jwtSettings)
-    {
-        _userRepository = userRepository;
-        _jwtSettings = jwtSettings.Value;
-    }
+    private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
     public async Task<string?> AuthenticateAsync(string username, string password)
     {
-        var user = await _userRepository.GetUserByUsernameAsync(username);
+        var user = await userRepository.GetUserByUsernameAsync(username);
 
         if(user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
