@@ -46,7 +46,6 @@ public class InventoryOutRepository : IInventoryOutRepository
 
         return inventoryOut;
     }
-
     public async Task<InventoryOutDto> CreateAsync(CreateInventoryOutDto inventoryOutDto, int userId)
     {
         if(inventoryOutDto.IdBranch == 1)
@@ -79,7 +78,7 @@ public class InventoryOutRepository : IInventoryOutRepository
         foreach(var detail in inventoryOutDto.Details)
         {
             var availableLots = await _context.InventoryLots
-                .Where(l => l.IdProduct == detail.IdProduct)
+                .Where(l => l.IdProduct == detail.IdProduct && l.BatchQuantity > 0)
                 .OrderBy(l => l.ExpirationDate)
                 .ToListAsync();
 
@@ -107,13 +106,17 @@ public class InventoryOutRepository : IInventoryOutRepository
                 remainingQuantity -= quantityToTake;
 
                 lot.BatchQuantity -= quantityToTake;
+
+                // ❌ NO eliminar el lote, solo actualizar su cantidad a 0
                 if(lot.BatchQuantity == 0)
-                    _context.InventoryLots.Remove(lot);
+                {
+                    _context.InventoryLots.Update(lot);
+                }
             }
 
             if(remainingQuantity > 0)
             {
-                throw new InvalidOperationException($"❌ No hay suficiente stock para el producto {detail.IdProduct}.");
+                throw new InvalidOperationException($"❌ No hay suficiente stock para el producto {detail.IdProduct}. Faltan {remainingQuantity} unidades.");
             }
         }
 
@@ -130,6 +133,7 @@ public class InventoryOutRepository : IInventoryOutRepository
             IdStatus = newInventoryOut.IdStatus
         };
     }
+
 
     public async Task<IEnumerable<FilteredInventoryOutDto>> GetFilteredInventoryOutsAsync(DateTime? startDate, DateTime? endDate, int? branchId, string? status)
     {
